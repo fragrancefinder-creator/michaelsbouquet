@@ -325,12 +325,6 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent);
       <p class="hint" style="margin-bottom:14px;">Which gender visitors picked at the start of the quiz, in this same period.</p>
       <div id="genderBreakdown"></div>
     </div>
-
-    <div class="card">
-      <h2 style="font-family:'Playfair Display',serif;font-size:16px;margin-bottom:4px;">Bundle choice</h2>
-      <p class="hint" style="margin-bottom:14px;">Which bundle visitors picked, in this same period.</p>
-      <div id="bundleBreakdown"></div>
-    </div>
   </div>
 
   <div class="tabpanel" id="tab-activity">
@@ -1088,17 +1082,13 @@ function renderRankings(){
       </div>`).join('');
   }
 
+  const periodOnly=filterByPeriod(allResults||[]);
   const genderCounts={men:0,women:0};
-  const bundleCounts={single:0,duo:0,trio:0};
-  filtered.forEach(r=>{
+  periodOnly.forEach(r=>{
     if(r.gender==='men')genderCounts.men++;
     else if(r.gender==='women')genderCounts.women++;
-    if(r.bundle==='single')bundleCounts.single++;
-    else if(r.bundle==='duo')bundleCounts.duo++;
-    else if(r.bundle==='trio')bundleCounts.trio++;
   });
   renderBreakdownBars('genderBreakdown', genderCounts, {men:'For Him',women:'For Her'});
-  renderBreakdownBars('bundleBreakdown', bundleCounts, {single:'The Solo Scent',duo:'The Day & Night Duo',trio:'The Triple Threat Trio'});
 }
 
 $('resetRankingsBtn').addEventListener('click',async()=>{
@@ -1119,7 +1109,7 @@ $('resetRankingsBtn').addEventListener('click',async()=>{
 
 // ---------- Activity (starts / completions / bundle pie chart) ----------
 let allStarts=null; // cached: [{id, ts}, ...]
-const BUNDLE_LABELS={single:'Single',duo:'Dynamic Duo',trio:'Michaels Trio'};
+const BUNDLE_LABELS={single:'The Solo Scent',duo:'The Day & Night Duo',trio:'The Triple Threat Trio'};
 const BUNDLE_COLORS={single:'#c9a227',duo:'#c08a63',trio:'#3f7a5c'};
 
 async function fetchStartsIfNeeded(){
