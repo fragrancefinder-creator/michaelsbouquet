@@ -190,9 +190,24 @@ textarea.freetext:focus{outline:none;border-color:var(--accent);}
 footer{text-align:center;padding:26px;border-top:1px solid var(--line);color:var(--dimmer);font-size:12px;font-family:'Manrope',sans-serif;letter-spacing:.05em;}
 
 @media(max-width:600px){
+  .topbar{padding:14px 18px;}
+  .w{padding:0 18px;}
+  .hero{padding:40px 0 36px;}
+  .hero-sub{font-size:15px;}
+  .eyebrow{margin-bottom:16px;}
+  .opt-grid{grid-template-columns:1fr;}
   .opt-grid.two-col{grid-template-columns:1fr;}
-  .match-head{flex-direction:column;}
-  .quiz-panel{padding:26px 20px;}
+  .opt{padding:14px;min-height:44px;}
+  .opt-grid.cards .opt{padding:18px 18px;}
+  .match-head{flex-direction:column;align-items:flex-start;gap:10px;}
+  .match-name{font-size:19px;}
+  .quiz-panel{padding:22px 16px;border-radius:16px;}
+  .nav-row{gap:10px;}
+  .btn{padding:14px 18px;}
+  .btn-ghost{padding:10px 4px;}
+  textarea.freetext{font-size:16px;}
+  input,select,textarea{font-size:16px;}
+  .opt-grid.chips{grid-template-columns:repeat(auto-fit,minmax(110px,1fr));}
 }
 </style>
 </head>
@@ -295,6 +310,46 @@ async function loadSiteConfig(){
   }catch(e){
     console.error('Could not load site background config (non-fatal)',e);
   }
+  applySiteContent();
+}
+
+function applySiteContent(){
+  if(SITE_CONFIG.heroTitle){
+    const parts=SITE_CONFIG.heroTitle.split('\n');
+    document.querySelector('.hero h1').textContent=SITE_CONFIG.heroTitle;
+  }
+  if(SITE_CONFIG.heroSub){
+    const heroP=document.querySelector('.hero-sub');
+    if(heroP)heroP.textContent=SITE_CONFIG.heroSub;
+  }
+  if(SITE_CONFIG.footerText){
+    const footer=document.querySelector('footer');
+    if(footer)footer.textContent=SITE_CONFIG.footerText;
+  }
+}
+
+function applyGenderColors(g){
+  const root=document.body.style;
+  const accent = g==='men' ? SITE_CONFIG.menAccent : SITE_CONFIG.womenAccent;
+  const bg = g==='men' ? SITE_CONFIG.menBg : SITE_CONFIG.womenBg;
+  if(accent){ root.setProperty('--accent',accent); root.setProperty('--accent2',accent); root.setProperty('--accent-line',accent); }
+  if(bg){ root.setProperty('--bg',bg); root.setProperty('--bg2',bg); }
+}
+
+// Tag config (emoji/label overrides + hidden tags), set from admin's tag manager.
+let TAG_CONFIG={profile:{},effect:{},hiddenProfile:[],hiddenEffect:[]};
+async function loadTagConfig(){
+  try{
+    const snap=await getDoc(doc(db,'config','tags'));
+    if(snap.exists()){
+      const d=snap.data();
+      TAG_CONFIG={profile:d.profile||{},effect:d.effect||{},hiddenProfile:d.hiddenProfile||[],hiddenEffect:d.hiddenEffect||[]};
+      Object.keys(TAG_CONFIG.profile).forEach(k=>{ PROFILE_META[k]={...(PROFILE_META[k]||{d:''}),...TAG_CONFIG.profile[k]}; });
+      Object.keys(TAG_CONFIG.effect).forEach(k=>{ EFFECT_META[k]={...(EFFECT_META[k]||{d:''}),...TAG_CONFIG.effect[k]}; });
+    }
+  }catch(e){
+    console.error('Could not load tag config (non-fatal)',e);
+  }
 }
 
 function applyGender(g){
@@ -302,6 +357,7 @@ function applyGender(g){
   document.body.classList.remove('theme-men','theme-women');
   document.body.classList.add(g==='men'?'theme-men':'theme-women');
   applyGenderBackground(g);
+  applyGenderColors(g);
   CATALOG = CATALOG_ALL.filter(f=>!f.gender || f.gender===g);
   buildDynamicTagOptions();
 }
@@ -353,16 +409,24 @@ function tagOpt(tag,meta){
   return {v:tag,e:m?m.e:"🏷️",l:m?m.l:titleCase(tag),d:m?m.d:""};
 }
 function buildDynamicTagOptions(){
-  const profileTags=new Set(Object.keys(PROFILE_META));
-  const effectTags=new Set(Object.keys(EFFECT_META));
+  // Both option lists are derived purely from what's actually used in CATALOG,
+  // which is already filtered to the chosen gender. That means: tags only used by
+  // men's fragrances only show up under "For Him", tags only used by women's
+  // fragrances only show up under "For Her", and tags used by both show up either
+  // way — keeps the picker short and the matches accurate, without needing every
+  // possible tag hardcoded into the options regardless of whether it's in use.
+  const profileTags=new Set();
+  const effectTags=new Set();
   CATALOG.forEach(f=>{
     (f.profile||[]).forEach(t=>profileTags.add(t));
     (f.effect||[]).forEach(t=>effectTags.add(t));
   });
-  // The effect ("message") step is gender-filtered: masculine doesn't apply once
-  // "For Her" is picked, and vice versa for "For Him".
+  // Belt-and-suspenders: masculine/feminine should never appear for the opposite
+  // gender even if a catalog item is mistagged.
   if(state.gender==='women')effectTags.delete('masculine');
   if(state.gender==='men')effectTags.delete('feminine');
+  (TAG_CONFIG.hiddenProfile||[]).forEach(t=>profileTags.delete(t));
+  (TAG_CONFIG.hiddenEffect||[]).forEach(t=>effectTags.delete(t));
   const profileOpts=[...profileTags].map(t=>tagOpt(t,PROFILE_META));
   const effectOpts=[...effectTags].map(t=>tagOpt(t,EFFECT_META));
   const profileStep=STEPS.find(s=>s.key==='profile');
@@ -376,7 +440,7 @@ async function loadCatalog(){
   startBtn.textContent='Loading fragrances…';
   startBtn.disabled=true;
   try{
-    const [snap]=await Promise.all([getDocs(collection(db,'fragrances')), loadSiteConfig()]);
+    const [snap]=await Promise.all([getDocs(collection(db,'fragrances')), loadSiteConfig(), loadTagConfig()]);
     CATALOG_ALL=snap.docs.map(d=>({id:d.id,...d.data()}));
   }catch(e){
     console.error('Failed to load fragrance catalog',e);
@@ -387,7 +451,7 @@ async function loadCatalog(){
 
 async function logResult(names,bundle){
   try{
-    await addDoc(collection(db,'results'),{names,bundle,ts:serverTimestamp()});
+    await addDoc(collection(db,'results'),{names,bundle,gender:state.gender,ts:serverTimestamp()});
   }catch(e){
     console.error('Could not log result (non-fatal)',e);
   }

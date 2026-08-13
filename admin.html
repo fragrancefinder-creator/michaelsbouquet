@@ -103,6 +103,50 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent);
     </div>
 
     <div class="card">
+      <h2 style="font-family:'Fraunces',serif;font-size:18px;margin-bottom:6px;">Manage tags & emojis</h2>
+      <p style="color:var(--dimmer);font-size:13px;margin-bottom:16px;">Every profile ("character") and effect ("message") tag used on the quiz, with its emoji. Change any emoji or label, or delete a tag you don't want offered anymore — it'll disappear from the quiz even if an old fragrance still has it. Add new tags here too, with your own emoji.</p>
+
+      <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--dimmer);margin-bottom:10px;">Profile tags</h3>
+      <div id="profileTagManager" style="margin-bottom:14px;"></div>
+      <div class="add-tag-row" style="margin-bottom:24px;">
+        <input id="newProfileTagName" placeholder="New tag name (e.g. leathery)" style="flex:2;">
+        <input id="newProfileTagEmoji" placeholder="Emoji" style="flex:0 0 70px;text-align:center;">
+        <button class="btn" id="addProfileTagMgrBtn">+ Add</button>
+      </div>
+
+      <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--dimmer);margin-bottom:10px;">Effect tags</h3>
+      <div id="effectTagManager" style="margin-bottom:14px;"></div>
+      <div class="add-tag-row">
+        <input id="newEffectTagName" placeholder="New tag name (e.g. mysterious)" style="flex:2;">
+        <input id="newEffectTagEmoji" placeholder="Emoji" style="flex:0 0 70px;text-align:center;">
+        <button class="btn" id="addEffectTagMgrBtn">+ Add</button>
+      </div>
+
+      <button class="btn primary" id="saveTagsBtn" style="margin-top:20px;">Save tag changes</button>
+      <div id="tagsSaveMsg"></div>
+    </div>
+
+    <div class="card">
+      <h2 style="font-family:'Fraunces',serif;font-size:18px;margin-bottom:6px;">Site copy & colours</h2>
+      <p style="color:var(--dimmer);font-size:13px;margin-bottom:16px;">Edit the hero text and footer, and fine-tune each gender theme's colours. Leave a colour blank to use the default.</p>
+      <div class="field"><label>Hero title</label><input id="cfg_heroTitle" placeholder="YOUR TAILORED SCENT AWAITS"></div>
+      <div class="field"><label>Hero subtitle</label><textarea id="cfg_heroSub" style="min-height:90px;" placeholder="At Michaels Bouquet, we believe..."></textarea></div>
+      <div class="field"><label>Footer text</label><input id="cfg_footer" placeholder="Michaels Bouquet — your tailored scent awaits."></div>
+      <div class="row3" style="margin-top:16px;">
+        <div class="field"><label>"For Him" accent colour</label><input id="cfg_menAccent" type="text" placeholder="#c9a24d"></div>
+        <div class="field"><label>"For Him" background colour</label><input id="cfg_menBg" type="text" placeholder="#232a35"></div>
+        <div class="field"></div>
+      </div>
+      <div class="row3">
+        <div class="field"><label>"For Her" accent colour</label><input id="cfg_womenAccent" type="text" placeholder="#c67b93"></div>
+        <div class="field"><label>"For Her" background colour</label><input id="cfg_womenBg" type="text" placeholder="#fdf3f2"></div>
+        <div class="field"></div>
+      </div>
+      <button class="btn primary" id="saveContentBtn" style="margin-top:16px;">Save site copy & colours</button>
+      <div id="contentSaveMsg"></div>
+    </div>
+
+    <div class="card">
       <h2 style="font-family:'Fraunces',serif;font-size:18px;margin-bottom:6px;">Site theme backgrounds</h2>
       <p style="color:var(--dimmer);font-size:13px;margin-bottom:16px;">The visitor's background photo changes once they pick Men or Women on the quiz's first step. Optional — without a photo, each theme just uses its plain colour gradient.</p>
       <div class="row2" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
@@ -264,6 +308,18 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent);
         <button class="btn danger" id="resetRankingsBtn">Reset all rankings</button>
       </div>
     </div>
+
+    <div class="card">
+      <h2 style="font-family:'Playfair Display',serif;font-size:16px;margin-bottom:4px;">For Him vs For Her</h2>
+      <p class="hint" style="margin-bottom:14px;">Which gender visitors picked at the start of the quiz, in this same period.</p>
+      <div id="genderBreakdown"></div>
+    </div>
+
+    <div class="card">
+      <h2 style="font-family:'Playfair Display',serif;font-size:16px;margin-bottom:4px;">Bundle choice</h2>
+      <p class="hint" style="margin-bottom:14px;">Which bundle visitors picked, in this same period.</p>
+      <div id="bundleBreakdown"></div>
+    </div>
   </div>
 
   <div class="tabpanel" id="tab-activity">
@@ -385,6 +441,36 @@ const SEED = [
   {name:"Arthur Ford Pink #4",gender:"women",age:"mid",profile:["floral","sweet","woody"],effect:["powerful","seductive"],occ:["date","weddings"],time:["evening","night"],weather:["cold","mild"],strength:["strong"],special:true,why:"A bold floral blend opening with tea and bergamot before moving into orchid, jasmine and rose, then settling into vanilla, musk and patchouli. It feels glamorous and full-bodied, making it well suited to weddings, special events and romantic evenings.",inspired:"Flowerbomb by Viktor & Rolf",notes:"Top Notes: Tea, Bergamot, Osmanthus\n\nMiddle Notes: Orchid, Jasmine, Rose, Freesia\n\nBase Notes: Patchouli, Musk, Vanilla",imageUrl:"https://arthur-ford.com/cdn/shop/files/929_28_65954434c04f03.41952214_arthur-ford-pink-perfume.jpg?v=1769761447&width=1500"},
   {name:"White #5",gender:"women",age:"mid",profile:["floral","fruity"],effect:["elegant"],occ:["dinners","date"],time:["evening"],weather:["mild"],strength:["moderate"],special:false,why:"A floral blend of pineapple, almond and patchouli for an elegant, easy evening.",inspired:"",notes:"Top: Pineapple, Almond. Base: Patchouli.",imageUrl:"https://michaelsbouquet.com/cdn/shop/files/242_103_67d177397a7280.55112231_white_5.jpg?v=1741780936&width=1500"}
 ];
+// Default emoji/label for every built-in tag — mirrors index.html. Firestore
+// overrides (config/tags) are merged on top of this at load time.
+const PROFILE_META_DEFAULT={
+  woody:{e:"🌲",l:"Woody"},citrus:{e:"🍋",l:"Citrusy"},aquatic:{e:"🌊",l:"Aquatic"},marine:{e:"🌊",l:"Marine"},
+  spicy:{e:"🌶️",l:"Spicy"},aromatic:{e:"🌿",l:"Aromatic"},fruity:{e:"🍍",l:"Fruity"},vanilla:{e:"🍦",l:"Vanilla"},
+  amber:{e:"🪵",l:"Amber"},floral:{e:"🌸",l:"Floral"},white_floral:{e:"🤍",l:"White Floral"},green:{e:"🍃",l:"Green"},
+  musky:{e:"🦌",l:"Musky"},smoky:{e:"🔥",l:"Smoky"},leathery:{e:"🥾",l:"Leathery"},cherry:{e:"🍒",l:"Cherry"},
+  clean:{e:"🧼",l:"Clean"},earthy:{e:"🪨",l:"Earthy"},mineral:{e:"💎",l:"Mineral"},fresh:{e:"🌬️",l:"Fresh"},
+  sweet:{e:"🍬",l:"Sweet"},warm:{e:"🕯️",l:"Warm"},airy:{e:"🎐",l:"Airy"},coffee:{e:"☕",l:"Coffee"},
+  powdery:{e:"🧁",l:"Powdery"},tropical:{e:"🌴",l:"Tropical"},creamy:{e:"🥛",l:"Creamy"},gourmand:{e:"🍰",l:"Gourmand"}
+};
+const EFFECT_META_DEFAULT={
+  youthful:{e:"⚡",l:"Youthful"},powerful:{e:"💪",l:"Powerful"},seductive:{e:"😏",l:"Seductive"},
+  elegant:{e:"✨",l:"Elegant"},masculine:{e:"🕴️",l:"Masculine"},feminine:{e:"🌷",l:"Feminine"}
+};
+let tagConfig={profile:{},effect:{},hiddenProfile:[],hiddenEffect:[]}; // Firestore overrides
+
+function effectiveProfileMeta(){
+  const out={...PROFILE_META_DEFAULT};
+  Object.keys(tagConfig.profile||{}).forEach(k=>{ out[k]={...(out[k]||{}),...tagConfig.profile[k]}; });
+  (tagConfig.hiddenProfile||[]).forEach(k=>delete out[k]);
+  return out;
+}
+function effectiveEffectMeta(){
+  const out={...EFFECT_META_DEFAULT};
+  Object.keys(tagConfig.effect||{}).forEach(k=>{ out[k]={...(out[k]||{}),...tagConfig.effect[k]}; });
+  (tagConfig.hiddenEffect||[]).forEach(k=>delete out[k]);
+  return out;
+}
+
 const BASE_PROFILE_TAGS=["woody","citrus","aquatic","marine","spicy","aromatic","fruity","vanilla","amber","floral","white_floral","green","musky","smoky","leathery","cherry","clean","earthy","mineral","fresh","sweet","warm","airy","coffee","powdery","tropical","creamy","gourmand"];
 const BASE_EFFECT_TAGS=["youthful","powerful","seductive","elegant","masculine","feminine"];
 const BASE_OCC_TAGS={office:"Office / work",school:"School / university",casual:"Casual days / cafés",gym:"Running / gym / sports",outdoor:"Outdoor walks / parks",errands:"Errand runs",dinners:"Dinners",date:"Date nights",clubs:"Clubs / bars",weddings:"Weddings / parties",formal:"Formal dinners / galas"};
@@ -438,6 +524,8 @@ async function initApp(){
   renderChipPickers();
   renderFragList();
   await loadSiteBackgrounds();
+  await loadTagConfig();
+  await loadSiteContent();
 }
 
 async function loadCatalog(){
@@ -624,6 +712,146 @@ function showBgPreview(which,dataUrl){
 setupBgDropZone('men');
 setupBgDropZone('women');
 
+// ---------- Tag & emoji manager ----------
+function renderTagManager(){
+  const pMeta=effectiveProfileMeta(), eMeta=effectiveEffectMeta();
+  const allProfileKeys=new Set([...Object.keys(pMeta), ...profileTags]);
+  const allEffectKeys=new Set([...Object.keys(eMeta), ...effectTags]);
+  (tagConfig.hiddenProfile||[]).forEach(k=>allProfileKeys.delete(k));
+  (tagConfig.hiddenEffect||[]).forEach(k=>allEffectKeys.delete(k));
+
+  $('profileTagManager').innerHTML=[...allProfileKeys].sort().map(k=>{
+    const m=pMeta[k]||{e:'🏷️',l:titleCase(k)};
+    return `<div class="tag-row" data-tag="${k}" data-cat="profile" style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+      <input class="tag-emoji-input" value="${m.e}" style="flex:0 0 56px;text-align:center;font-size:16px;">
+      <input class="tag-label-input" value="${m.l}" style="flex:1;">
+      <span style="color:var(--dimmer);font-size:11px;flex:0 0 90px;">${k}</span>
+      <button type="button" class="btn danger tag-del-btn" style="padding:6px 10px;font-size:12px;">Delete</button>
+    </div>`;
+  }).join('');
+
+  $('effectTagManager').innerHTML=[...allEffectKeys].sort().map(k=>{
+    const m=eMeta[k]||{e:'🏷️',l:titleCase(k)};
+    return `<div class="tag-row" data-tag="${k}" data-cat="effect" style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+      <input class="tag-emoji-input" value="${m.e}" style="flex:0 0 56px;text-align:center;font-size:16px;">
+      <input class="tag-label-input" value="${m.l}" style="flex:1;">
+      <span style="color:var(--dimmer);font-size:11px;flex:0 0 90px;">${k}</span>
+      <button type="button" class="btn danger tag-del-btn" style="padding:6px 10px;font-size:12px;">Delete</button>
+    </div>`;
+  }).join('');
+
+  document.querySelectorAll('.tag-del-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const row=btn.closest('.tag-row');
+      const cat=row.dataset.cat, tag=row.dataset.tag;
+      if(!confirm(`Remove the "${tag}" tag from the quiz? Fragrances already tagged with it keep the tag internally, but it won't be offered as an option anymore.`))return;
+      if(cat==='profile'){ tagConfig.hiddenProfile=[...(tagConfig.hiddenProfile||[]),tag]; }
+      else{ tagConfig.hiddenEffect=[...(tagConfig.hiddenEffect||[]),tag]; }
+      row.remove();
+    });
+  });
+}
+
+async function loadTagConfig(){
+  try{
+    const snap=await getDoc(doc(db,'config','tags'));
+    if(snap.exists()){
+      const d=snap.data();
+      tagConfig={profile:d.profile||{},effect:d.effect||{},hiddenProfile:d.hiddenProfile||[],hiddenEffect:d.hiddenEffect||[]};
+    }
+  }catch(e){ console.error('Could not load tag config',e); }
+  renderTagManager();
+}
+
+function collectTagManagerEdits(){
+  const profileOverrides={}, effectOverrides={};
+  document.querySelectorAll('#profileTagManager .tag-row').forEach(row=>{
+    const tag=row.dataset.tag;
+    const e=row.querySelector('.tag-emoji-input').value.trim()||'🏷️';
+    const l=row.querySelector('.tag-label-input').value.trim()||titleCase(tag);
+    profileOverrides[tag]={e,l};
+  });
+  document.querySelectorAll('#effectTagManager .tag-row').forEach(row=>{
+    const tag=row.dataset.tag;
+    const e=row.querySelector('.tag-emoji-input').value.trim()||'🏷️';
+    const l=row.querySelector('.tag-label-input').value.trim()||titleCase(tag);
+    effectOverrides[tag]={e,l};
+  });
+  return {profileOverrides,effectOverrides};
+}
+
+$('addProfileTagMgrBtn').addEventListener('click',()=>{
+  const name=$('newProfileTagName').value.trim().toLowerCase().replace(/\s+/g,'_');
+  const emoji=$('newProfileTagEmoji').value.trim()||'🏷️';
+  if(!name)return;
+  tagConfig.profile={...tagConfig.profile,[name]:{e:emoji,l:titleCase(name.replace(/_/g,' '))}};
+  tagConfig.hiddenProfile=(tagConfig.hiddenProfile||[]).filter(t=>t!==name);
+  profileTags.add(name);
+  $('newProfileTagName').value=''; $('newProfileTagEmoji').value='';
+  renderTagManager();
+});
+$('addEffectTagMgrBtn').addEventListener('click',()=>{
+  const name=$('newEffectTagName').value.trim().toLowerCase().replace(/\s+/g,'_');
+  const emoji=$('newEffectTagEmoji').value.trim()||'🏷️';
+  if(!name)return;
+  tagConfig.effect={...tagConfig.effect,[name]:{e:emoji,l:titleCase(name.replace(/_/g,' '))}};
+  tagConfig.hiddenEffect=(tagConfig.hiddenEffect||[]).filter(t=>t!==name);
+  effectTags.add(name);
+  $('newEffectTagName').value=''; $('newEffectTagEmoji').value='';
+  renderTagManager();
+});
+
+$('saveTagsBtn').addEventListener('click',async()=>{
+  $('tagsSaveMsg').innerHTML='';
+  $('saveTagsBtn').disabled=true;
+  try{
+    const {profileOverrides,effectOverrides}=collectTagManagerEdits();
+    tagConfig.profile={...tagConfig.profile,...profileOverrides};
+    tagConfig.effect={...tagConfig.effect,...effectOverrides};
+    await setDoc(doc(db,'config','tags'),tagConfig,{merge:false});
+    $('tagsSaveMsg').innerHTML='<div class="msg ok">Saved. The quiz will use these tags and emojis on next load.</div>';
+  }catch(e){
+    $('tagsSaveMsg').innerHTML=`<div class="msg err">${e.message}</div>`;
+  }
+  $('saveTagsBtn').disabled=false;
+});
+
+// ---------- Site copy & colours ----------
+async function loadSiteContent(){
+  try{
+    const snap=await getDoc(doc(db,'config','site'));
+    if(snap.exists()){
+      const d=snap.data();
+      $('cfg_heroTitle').value=d.heroTitle||'';
+      $('cfg_heroSub').value=d.heroSub||'';
+      $('cfg_footer').value=d.footerText||'';
+      $('cfg_menAccent').value=d.menAccent||'';
+      $('cfg_menBg').value=d.menBg||'';
+      $('cfg_womenAccent').value=d.womenAccent||'';
+      $('cfg_womenBg').value=d.womenBg||'';
+    }
+  }catch(e){ console.error('Could not load site content',e); }
+}
+$('saveContentBtn').addEventListener('click',async()=>{
+  $('contentSaveMsg').innerHTML='';
+  $('saveContentBtn').disabled=true;
+  try{
+    await setDoc(doc(db,'config','site'),{
+      heroTitle:$('cfg_heroTitle').value.trim(),
+      heroSub:$('cfg_heroSub').value.trim(),
+      footerText:$('cfg_footer').value.trim(),
+      menAccent:$('cfg_menAccent').value.trim(),
+      menBg:$('cfg_menBg').value.trim(),
+      womenAccent:$('cfg_womenAccent').value.trim(),
+      womenBg:$('cfg_womenBg').value.trim(),
+    },{merge:true});
+    $('contentSaveMsg').innerHTML='<div class="msg ok">Saved. Visitors will see the changes on their next visit.</div>';
+  }catch(e){
+    $('contentSaveMsg').innerHTML=`<div class="msg err">${e.message}</div>`;
+  }
+  $('saveContentBtn').disabled=false;
+});
+
 async function loadSiteBackgrounds(){
   try{
     const snap=await getDoc(doc(db,'config','site'));
@@ -766,7 +994,7 @@ async function fetchResultsIfNeeded(){
   const snap=await getDocs(collection(db,'results'));
   allResults=snap.docs.map(d=>{
     const data=d.data();
-    return {id:d.id,names:data.names||[],ts:data.ts&&data.ts.toDate?data.ts.toDate():null};
+    return {id:d.id,names:data.names||[],gender:data.gender||null,bundle:data.bundle||null,ts:data.ts&&data.ts.toDate?data.ts.toDate():null};
   });
 }
 
@@ -805,6 +1033,20 @@ async function loadRankings(){
   renderRankings();
 }
 
+function renderBreakdownBars(containerId, counts, labels){
+  const entries=Object.entries(counts).filter(([,c])=>c>0);
+  const total=entries.reduce((s,[,c])=>s+c,0);
+  const el=$(containerId);
+  if(!total){ el.innerHTML='<p style="color:var(--dim);font-size:13px;">No data in this period.</p>'; return; }
+  const max=Math.max(...entries.map(([,c])=>c));
+  el.innerHTML=entries.sort((a,b)=>b[1]-a[1]).map(([key,count])=>`
+    <div class="rank-row">
+      <div class="rank-name">${labels[key]||key}</div>
+      <div class="rank-bar-wrap"><div class="rank-bar" style="width:${(count/max*100).toFixed(0)}%"></div></div>
+      <div class="rank-count">${count} (${Math.round(count/total*100)}%)</div>
+    </div>`).join('');
+}
+
 function renderRankings(){
   const filtered=filterByPeriod(allResults||[]);
   const counts={};
@@ -813,16 +1055,28 @@ function renderRankings(){
   $('rankStats').textContent=`${filtered.length} completed quiz result${filtered.length===1?'':'s'} in this period`;
   if(!ranked.length){
     $('rankList').innerHTML='<p style="color:var(--dim);">No results logged in this period.</p>';
-    return;
+  }else{
+    const max=ranked[0][1];
+    $('rankList').innerHTML=ranked.map(([name,count],i)=>`
+      <div class="rank-row">
+        <div class="rank-num">#${i+1}</div>
+        <div class="rank-name">${name}</div>
+        <div class="rank-bar-wrap"><div class="rank-bar" style="width:${(count/max*100).toFixed(0)}%"></div></div>
+        <div class="rank-count">${count} time${count===1?'':'s'}</div>
+      </div>`).join('');
   }
-  const max=ranked[0][1];
-  $('rankList').innerHTML=ranked.map(([name,count],i)=>`
-    <div class="rank-row">
-      <div class="rank-num">#${i+1}</div>
-      <div class="rank-name">${name}</div>
-      <div class="rank-bar-wrap"><div class="rank-bar" style="width:${(count/max*100).toFixed(0)}%"></div></div>
-      <div class="rank-count">${count} time${count===1?'':'s'}</div>
-    </div>`).join('');
+
+  const genderCounts={men:0,women:0};
+  const bundleCounts={single:0,duo:0,trio:0};
+  filtered.forEach(r=>{
+    if(r.gender==='men')genderCounts.men++;
+    else if(r.gender==='women')genderCounts.women++;
+    if(r.bundle==='single')bundleCounts.single++;
+    else if(r.bundle==='duo')bundleCounts.duo++;
+    else if(r.bundle==='trio')bundleCounts.trio++;
+  });
+  renderBreakdownBars('genderBreakdown', genderCounts, {men:'For Him',women:'For Her'});
+  renderBreakdownBars('bundleBreakdown', bundleCounts, {single:'The Solo Scent',duo:'The Day & Night Duo',trio:'The Triple Threat Trio'});
 }
 
 $('resetRankingsBtn').addEventListener('click',async()=>{
