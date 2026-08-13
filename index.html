@@ -337,15 +337,16 @@ function applyGenderColors(g){
 }
 
 // Tag config (emoji/label overrides + hidden tags), set from admin's tag manager.
-let TAG_CONFIG={profile:{},effect:{},hiddenProfile:[],hiddenEffect:[]};
+let TAG_CONFIG={profile:{},effect:{},occ:{},hiddenProfile:[],hiddenEffect:[],hiddenOcc:[]};
 async function loadTagConfig(){
   try{
     const snap=await getDoc(doc(db,'config','tags'));
     if(snap.exists()){
       const d=snap.data();
-      TAG_CONFIG={profile:d.profile||{},effect:d.effect||{},hiddenProfile:d.hiddenProfile||[],hiddenEffect:d.hiddenEffect||[]};
+      TAG_CONFIG={profile:d.profile||{},effect:d.effect||{},occ:d.occ||{},hiddenProfile:d.hiddenProfile||[],hiddenEffect:d.hiddenEffect||[],hiddenOcc:d.hiddenOcc||[]};
       Object.keys(TAG_CONFIG.profile).forEach(k=>{ PROFILE_META[k]={...(PROFILE_META[k]||{d:''}),...TAG_CONFIG.profile[k]}; });
       Object.keys(TAG_CONFIG.effect).forEach(k=>{ EFFECT_META[k]={...(EFFECT_META[k]||{d:''}),...TAG_CONFIG.effect[k]}; });
+      Object.keys(TAG_CONFIG.occ).forEach(k=>{ OCC_META[k]={...(OCC_META[k]||{}),...TAG_CONFIG.occ[k]}; });
     }
   }catch(e){
     console.error('Could not load tag config (non-fatal)',e);
@@ -403,6 +404,19 @@ const EFFECT_META={
   masculine:{e:"🕴️",l:"Masculine",d:"Confident, mature, traditionally masculine"},
   feminine:{e:"🌷",l:"Feminine",d:"Soft, graceful, radiant"}
 };
+const OCC_META={
+  office:{e:"🏢",l:"Office / work"},
+  school:{e:"🎓",l:"School / university"},
+  casual:{e:"☕",l:"Casual days / cafés"},
+  gym:{e:"🏃",l:"Running / gym / sports"},
+  outdoor:{e:"🌳",l:"Outdoor walks / parks"},
+  errands:{e:"🛒",l:"Errand runs"},
+  dinners:{e:"🍽️",l:"Dinners"},
+  date:{e:"❤️",l:"Date nights"},
+  clubs:{e:"🍸",l:"Clubs / bars"},
+  weddings:{e:"💍",l:"Weddings / parties"},
+  formal:{e:"🕴️",l:"Formal dinners / galas"}
+};
 function titleCase(s){return s.charAt(0).toUpperCase()+s.slice(1);}
 function tagOpt(tag,meta){
   const m=meta[tag];
@@ -427,12 +441,32 @@ function buildDynamicTagOptions(){
   if(state.gender==='men')effectTags.delete('feminine');
   (TAG_CONFIG.hiddenProfile||[]).forEach(t=>profileTags.delete(t));
   (TAG_CONFIG.hiddenEffect||[]).forEach(t=>effectTags.delete(t));
+  // Occasion isn't gender-restricted (office/date/casual etc. apply either way) —
+  // show every known occasion tag, admin-added ones included, minus any hidden.
+  const occTags=new Set(Object.keys(OCC_META));
+  CATALOG_ALL.forEach(f=>{ (f.occ||[]).forEach(t=>occTags.add(t)); });
+  (TAG_CONFIG.hiddenOcc||[]).forEach(t=>occTags.delete(t));
   const profileOpts=[...profileTags].map(t=>tagOpt(t,PROFILE_META));
   const effectOpts=[...effectTags].map(t=>tagOpt(t,EFFECT_META));
+  const occOpts=[...occTags].map(t=>tagOpt(t,OCC_META));
   const profileStep=STEPS.find(s=>s.key==='profile');
   const effectStep=STEPS.find(s=>s.key==='effect');
+  const occStep=STEPS.find(s=>s.key==='occ');
   profileStep.opts=profileOpts;
   effectStep.opts=effectOpts;
+  occStep.opts=occOpts;
+}
+
+// Which questions are switched on/off, set from admin. gender and bundle are always
+// on (the whole quiz structurally depends on them) — everything else can be hidden.
+let QUESTION_TOGGLES={};
+async function loadQuestionToggles(){
+  try{
+    const snap=await getDoc(doc(db,'config','questions'));
+    if(snap.exists())QUESTION_TOGGLES=snap.data();
+  }catch(e){
+    console.error('Could not load question toggles (non-fatal)',e);
+  }
 }
 
 async function loadCatalog(){
@@ -440,7 +474,7 @@ async function loadCatalog(){
   startBtn.textContent='Loading fragrances…';
   startBtn.disabled=true;
   try{
-    const [snap]=await Promise.all([getDocs(collection(db,'fragrances')), loadSiteConfig(), loadTagConfig()]);
+    const [snap]=await Promise.all([getDocs(collection(db,'fragrances')), loadSiteConfig(), loadTagConfig(), loadQuestionToggles()]);
     CATALOG_ALL=snap.docs.map(d=>({id:d.id,...d.data()}));
   }catch(e){
     console.error('Failed to load fragrance catalog',e);
@@ -480,9 +514,7 @@ const STEPS=[
     {v:"duo",e:"2️⃣",l:"The Day & Night Duo",d:"Two fragrances — one built for daytime and hot weather, one for nighttime and cooler air."},
     {v:"trio",e:"3️⃣",l:"The Triple Threat Trio",d:"Three fragrances covering your day, your night, and that one special occasion."}
   ]},
-  {key:"occ",sig:"Your world.",title:"Where / When to Wear",help:"Choose where you see yourself wearing the fragrance. Select as many as apply.",type:"multi",cols:"",opts:[
-    {v:"office",e:"🏢",l:"Office / work"},{v:"school",e:"🎓",l:"School / university"},{v:"casual",e:"☕",l:"Casual days / cafés"},{v:"gym",e:"🏃",l:"Running / gym / sports"},{v:"outdoor",e:"🌳",l:"Outdoor walks / parks"},{v:"errands",e:"🛒",l:"Errand runs"},{v:"dinners",e:"🍽️",l:"Dinners"},{v:"date",e:"❤️",l:"Date nights"},{v:"clubs",e:"🍸",l:"Clubs / bars"},{v:"weddings",e:"💍",l:"Weddings / parties"},{v:"formal",e:"🕴️",l:"Formal dinners / galas"}
-  ]},
+  {key:"occ",sig:"Your world.",title:"Where / When to Wear",help:"Choose where you see yourself wearing the fragrance. Select as many as apply.",type:"multi",cols:"",opts:[]},
   {key:"time",sig:"Your hour.",title:"Time of Day",help:"",type:"single",cols:"stack",showIf:(st)=>st.bundle==='single',opts:[
     {v:"day",e:"⛅",l:"Daytime",d:"Fresh, clean and easy-going"},{v:"evening",e:"🌆",l:"Evening",d:"Smoother, warmer, more noticeable"},{v:"night",e:"🌙",l:"Night",d:"Richer, sweeter, spicier, stronger"},{v:"all",e:"🔄",l:"All day",d:"Versatile across situations"}
   ]},
@@ -517,7 +549,10 @@ document.getElementById('startBtn').addEventListener('click',()=>{
 
 loadCatalog();
 
-function isVisible(step){ return !step.showIf || step.showIf(state); }
+function isVisible(step){
+  if(step.key!=='gender' && step.key!=='bundle' && QUESTION_TOGGLES[step.key]===false)return false;
+  return !step.showIf || step.showIf(state);
+}
 function visibleSteps(){ return STEPS.filter(isVisible); }
 function nextVisibleIndex(from){ let i=from+1; while(i<STEPS.length && !isVisible(STEPS[i])) i++; return i; }
 function prevVisibleIndex(from){ let i=from-1; while(i>=0 && !isVisible(STEPS[i])) i--; return i; }

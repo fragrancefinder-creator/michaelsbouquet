@@ -46,6 +46,16 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent);
 .frag-actions button{font-family:'Manrope',sans-serif;font-size:10px;text-transform:uppercase;padding:7px 12px;border-radius:6px;border:1px solid var(--line-s);background:transparent;color:var(--dim);cursor:pointer;}
 .frag-actions button:hover{color:var(--text);border-color:var(--text);}
 .chip-picker{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;}
+.question-toggle-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid var(--line);}
+.question-toggle-row:last-child{border-bottom:none;}
+.question-toggle-row .qname{font-weight:600;font-size:14px;}
+.question-toggle-row .qdesc{font-size:12px;color:var(--dimmer);margin-top:2px;}
+.toggle-switch{position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0;cursor:pointer;}
+.toggle-switch input{opacity:0;width:0;height:0;}
+.toggle-switch .slider{position:absolute;inset:0;background:var(--line-s);border-radius:999px;transition:background .18s;}
+.toggle-switch .slider::before{content:"";position:absolute;height:20px;width:20px;left:3px;top:3px;background:var(--bg2);border-radius:50%;transition:transform .18s;box-shadow:0 1px 3px rgba(0,0,0,.3);}
+.toggle-switch input:checked + .slider{background:var(--accent);}
+.toggle-switch input:checked + .slider::before{transform:translateX(20px);}
 .chip{font-size:12px;padding:7px 12px;border-radius:99px;border:1.5px solid var(--line-s);background:var(--bg2);cursor:pointer;color:var(--dim);}
 .chip.on{background:var(--accent-soft);border-color:var(--accent);color:var(--text);}
 .add-tag-row{display:flex;gap:8px;}
@@ -268,14 +278,30 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent);
 
       <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--dimmer);margin-bottom:10px;">Effect tags</h3>
       <div id="effectTagManager" style="margin-bottom:14px;"></div>
-      <div class="add-tag-row">
+      <div class="add-tag-row" style="margin-bottom:24px;">
         <input id="newEffectTagName" placeholder="New tag name (e.g. mysterious)" style="flex:2;">
         <input id="newEffectTagEmoji" placeholder="Emoji" style="flex:0 0 70px;text-align:center;">
         <button class="btn" id="addEffectTagMgrBtn">+ Add</button>
       </div>
 
+      <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--dimmer);margin-bottom:10px;">Occasion tags</h3>
+      <div id="occTagManager" style="margin-bottom:14px;"></div>
+      <div class="add-tag-row">
+        <input id="newOccTagName" placeholder="New tag name (e.g. brunch)" style="flex:2;">
+        <input id="newOccTagEmoji" placeholder="Emoji" style="flex:0 0 70px;text-align:center;">
+        <button class="btn" id="addOccTagMgrBtn">+ Add</button>
+      </div>
+
       <button class="btn primary" id="saveTagsBtn" style="margin-top:20px;">Save tag changes</button>
       <div id="tagsSaveMsg"></div>
+    </div>
+
+    <div class="card">
+      <h2 style="font-family:'Fraunces',serif;font-size:18px;margin-bottom:6px;">Quiz questions</h2>
+      <p style="color:var(--dimmer);font-size:13px;margin-bottom:16px;">Turn any question off to skip it on the live quiz entirely — visitors won't see it and it won't affect their matches. "Who are we finding a scent for?" and the bundle question always stay on since the rest of the quiz depends on them.</p>
+      <div id="questionToggles"></div>
+      <button class="btn primary" id="saveQuestionsBtn" style="margin-top:16px;">Save question settings</button>
+      <div id="questionsSaveMsg"></div>
     </div>
   </div>
 
@@ -466,7 +492,13 @@ const EFFECT_META_DEFAULT={
   youthful:{e:"⚡",l:"Youthful"},powerful:{e:"💪",l:"Powerful"},seductive:{e:"😏",l:"Seductive"},
   elegant:{e:"✨",l:"Elegant"},masculine:{e:"🕴️",l:"Masculine"},feminine:{e:"🌷",l:"Feminine"}
 };
-let tagConfig={profile:{},effect:{},hiddenProfile:[],hiddenEffect:[]}; // Firestore overrides
+const OCC_META_DEFAULT={
+  office:{e:"🏢",l:"Office / work"},school:{e:"🎓",l:"School / university"},casual:{e:"☕",l:"Casual days / cafés"},
+  gym:{e:"🏃",l:"Running / gym / sports"},outdoor:{e:"🌳",l:"Outdoor walks / parks"},errands:{e:"🛒",l:"Errand runs"},
+  dinners:{e:"🍽️",l:"Dinners"},date:{e:"❤️",l:"Date nights"},clubs:{e:"🍸",l:"Clubs / bars"},
+  weddings:{e:"💍",l:"Weddings / parties"},formal:{e:"🕴️",l:"Formal dinners / galas"}
+};
+let tagConfig={profile:{},effect:{},occ:{},hiddenProfile:[],hiddenEffect:[],hiddenOcc:[]}; // Firestore overrides
 
 function effectiveProfileMeta(){
   const out={...PROFILE_META_DEFAULT};
@@ -478,6 +510,12 @@ function effectiveEffectMeta(){
   const out={...EFFECT_META_DEFAULT};
   Object.keys(tagConfig.effect||{}).forEach(k=>{ out[k]={...(out[k]||{}),...tagConfig.effect[k]}; });
   (tagConfig.hiddenEffect||[]).forEach(k=>delete out[k]);
+  return out;
+}
+function effectiveOccMeta(){
+  const out={...OCC_META_DEFAULT};
+  Object.keys(tagConfig.occ||{}).forEach(k=>{ out[k]={...(out[k]||{}),...tagConfig.occ[k]}; });
+  (tagConfig.hiddenOcc||[]).forEach(k=>delete out[k]);
   return out;
 }
 
@@ -536,6 +574,7 @@ async function initApp(){
   await loadSiteBackgrounds();
   await loadTagConfig();
   await loadSiteContent();
+  await loadQuestionConfig();
 }
 
 async function loadCatalog(){
@@ -724,31 +763,26 @@ setupBgDropZone('women');
 
 // ---------- Tag & emoji manager ----------
 function renderTagManager(){
-  const pMeta=effectiveProfileMeta(), eMeta=effectiveEffectMeta();
+  const pMeta=effectiveProfileMeta(), eMeta=effectiveEffectMeta(), oMeta=effectiveOccMeta();
   const allProfileKeys=new Set([...Object.keys(pMeta), ...profileTags]);
   const allEffectKeys=new Set([...Object.keys(eMeta), ...effectTags]);
+  const allOccKeys=new Set([...Object.keys(oMeta), ...Object.keys(occTags)]);
   (tagConfig.hiddenProfile||[]).forEach(k=>allProfileKeys.delete(k));
   (tagConfig.hiddenEffect||[]).forEach(k=>allEffectKeys.delete(k));
+  (tagConfig.hiddenOcc||[]).forEach(k=>allOccKeys.delete(k));
 
-  $('profileTagManager').innerHTML=[...allProfileKeys].sort().map(k=>{
-    const m=pMeta[k]||{e:'🏷️',l:titleCase(k)};
-    return `<div class="tag-row" data-tag="${k}" data-cat="profile" style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+  function tagRow(k,m,cat){
+    return `<div class="tag-row" data-tag="${k}" data-cat="${cat}" style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
       <input class="tag-emoji-input" value="${m.e}" style="flex:0 0 56px;text-align:center;font-size:16px;">
       <input class="tag-label-input" value="${m.l}" style="flex:1;">
       <span style="color:var(--dimmer);font-size:11px;flex:0 0 90px;">${k}</span>
       <button type="button" class="btn danger tag-del-btn" style="padding:6px 10px;font-size:12px;">Delete</button>
     </div>`;
-  }).join('');
+  }
 
-  $('effectTagManager').innerHTML=[...allEffectKeys].sort().map(k=>{
-    const m=eMeta[k]||{e:'🏷️',l:titleCase(k)};
-    return `<div class="tag-row" data-tag="${k}" data-cat="effect" style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
-      <input class="tag-emoji-input" value="${m.e}" style="flex:0 0 56px;text-align:center;font-size:16px;">
-      <input class="tag-label-input" value="${m.l}" style="flex:1;">
-      <span style="color:var(--dimmer);font-size:11px;flex:0 0 90px;">${k}</span>
-      <button type="button" class="btn danger tag-del-btn" style="padding:6px 10px;font-size:12px;">Delete</button>
-    </div>`;
-  }).join('');
+  $('profileTagManager').innerHTML=[...allProfileKeys].sort().map(k=>tagRow(k,pMeta[k]||{e:'🏷️',l:titleCase(k)},'profile')).join('');
+  $('effectTagManager').innerHTML=[...allEffectKeys].sort().map(k=>tagRow(k,eMeta[k]||{e:'🏷️',l:titleCase(k)},'effect')).join('');
+  $('occTagManager').innerHTML=[...allOccKeys].sort().map(k=>tagRow(k,oMeta[k]||{e:'🏷️',l:occTags[k]||titleCase(k)},'occ')).join('');
 
   document.querySelectorAll('.tag-del-btn').forEach(btn=>{
     btn.addEventListener('click',()=>{
@@ -756,7 +790,8 @@ function renderTagManager(){
       const cat=row.dataset.cat, tag=row.dataset.tag;
       if(!confirm(`Remove the "${tag}" tag from the quiz? Fragrances already tagged with it keep the tag internally, but it won't be offered as an option anymore.`))return;
       if(cat==='profile'){ tagConfig.hiddenProfile=[...(tagConfig.hiddenProfile||[]),tag]; }
-      else{ tagConfig.hiddenEffect=[...(tagConfig.hiddenEffect||[]),tag]; }
+      else if(cat==='effect'){ tagConfig.hiddenEffect=[...(tagConfig.hiddenEffect||[]),tag]; }
+      else{ tagConfig.hiddenOcc=[...(tagConfig.hiddenOcc||[]),tag]; }
       row.remove();
     });
   });
@@ -767,14 +802,14 @@ async function loadTagConfig(){
     const snap=await getDoc(doc(db,'config','tags'));
     if(snap.exists()){
       const d=snap.data();
-      tagConfig={profile:d.profile||{},effect:d.effect||{},hiddenProfile:d.hiddenProfile||[],hiddenEffect:d.hiddenEffect||[]};
+      tagConfig={profile:d.profile||{},effect:d.effect||{},occ:d.occ||{},hiddenProfile:d.hiddenProfile||[],hiddenEffect:d.hiddenEffect||[],hiddenOcc:d.hiddenOcc||[]};
     }
   }catch(e){ console.error('Could not load tag config',e); }
   renderTagManager();
 }
 
 function collectTagManagerEdits(){
-  const profileOverrides={}, effectOverrides={};
+  const profileOverrides={}, effectOverrides={}, occOverrides={};
   document.querySelectorAll('#profileTagManager .tag-row').forEach(row=>{
     const tag=row.dataset.tag;
     const e=row.querySelector('.tag-emoji-input').value.trim()||'🏷️';
@@ -787,7 +822,13 @@ function collectTagManagerEdits(){
     const l=row.querySelector('.tag-label-input').value.trim()||titleCase(tag);
     effectOverrides[tag]={e,l};
   });
-  return {profileOverrides,effectOverrides};
+  document.querySelectorAll('#occTagManager .tag-row').forEach(row=>{
+    const tag=row.dataset.tag;
+    const e=row.querySelector('.tag-emoji-input').value.trim()||'🏷️';
+    const l=row.querySelector('.tag-label-input').value.trim()||titleCase(tag);
+    occOverrides[tag]={e,l};
+  });
+  return {profileOverrides,effectOverrides,occOverrides};
 }
 
 $('addProfileTagMgrBtn').addEventListener('click',()=>{
@@ -810,14 +851,25 @@ $('addEffectTagMgrBtn').addEventListener('click',()=>{
   $('newEffectTagName').value=''; $('newEffectTagEmoji').value='';
   renderTagManager();
 });
+$('addOccTagMgrBtn').addEventListener('click',()=>{
+  const name=$('newOccTagName').value.trim().toLowerCase().replace(/\s+/g,'_');
+  const emoji=$('newOccTagEmoji').value.trim()||'🏷️';
+  if(!name)return;
+  tagConfig.occ={...tagConfig.occ,[name]:{e:emoji,l:titleCase(name.replace(/_/g,' '))}};
+  tagConfig.hiddenOcc=(tagConfig.hiddenOcc||[]).filter(t=>t!==name);
+  occTags[name]=titleCase(name.replace(/_/g,' '));
+  $('newOccTagName').value=''; $('newOccTagEmoji').value='';
+  renderTagManager();
+});
 
 $('saveTagsBtn').addEventListener('click',async()=>{
   $('tagsSaveMsg').innerHTML='';
   $('saveTagsBtn').disabled=true;
   try{
-    const {profileOverrides,effectOverrides}=collectTagManagerEdits();
+    const {profileOverrides,effectOverrides,occOverrides}=collectTagManagerEdits();
     tagConfig.profile={...tagConfig.profile,...profileOverrides};
     tagConfig.effect={...tagConfig.effect,...effectOverrides};
+    tagConfig.occ={...tagConfig.occ,...occOverrides};
     await setDoc(doc(db,'config','tags'),tagConfig,{merge:false});
     $('tagsSaveMsg').innerHTML='<div class="msg ok">Saved. The quiz will use these tags and emojis on next load.</div>';
   }catch(e){
@@ -860,6 +912,55 @@ $('saveContentBtn').addEventListener('click',async()=>{
     $('contentSaveMsg').innerHTML=`<div class="msg err">${e.message}</div>`;
   }
   $('saveContentBtn').disabled=false;
+});
+
+// ---------- Quiz question on/off ----------
+const TOGGLEABLE_QUESTIONS=[
+  {key:'occ',label:'Where / When to Wear',desc:'Which occasions the fragrance should suit.'},
+  {key:'time',label:'Time of Day',desc:'Only ever shown for the Solo Scent bundle.'},
+  {key:'strength',label:'Strength Factor / Sillage',desc:'How far the scent should travel.'},
+  {key:'profile',label:'Scent Profile (characters)',desc:'Which scent characters they\'re drawn to.'},
+  {key:'effect',label:'Effect / Message',desc:'What they want the fragrance to communicate.'},
+  {key:'freetext',label:'Personal Description',desc:'Optional free-text box at the end.'},
+];
+let questionConfig={};
+
+function renderQuestionToggles(){
+  $('questionToggles').innerHTML=TOGGLEABLE_QUESTIONS.map(q=>{
+    const on=questionConfig[q.key]!==false;
+    return `<div class="question-toggle-row" data-key="${q.key}">
+      <div><div class="qname">${q.label}</div><div class="qdesc">${q.desc}</div></div>
+      <label class="toggle-switch">
+        <input type="checkbox" class="q-toggle-input" ${on?'checked':''}>
+        <span class="slider"></span>
+      </label>
+    </div>`;
+  }).join('');
+}
+
+async function loadQuestionConfig(){
+  try{
+    const snap=await getDoc(doc(db,'config','questions'));
+    if(snap.exists())questionConfig=snap.data();
+  }catch(e){ console.error('Could not load question config',e); }
+  renderQuestionToggles();
+}
+
+$('saveQuestionsBtn').addEventListener('click',async()=>{
+  $('questionsSaveMsg').innerHTML='';
+  $('saveQuestionsBtn').disabled=true;
+  try{
+    const next={};
+    document.querySelectorAll('.question-toggle-row').forEach(row=>{
+      next[row.dataset.key]=row.querySelector('.q-toggle-input').checked;
+    });
+    questionConfig=next;
+    await setDoc(doc(db,'config','questions'),questionConfig,{merge:false});
+    $('questionsSaveMsg').innerHTML='<div class="msg ok">Saved. Visitors will see the updated question set on their next visit.</div>';
+  }catch(e){
+    $('questionsSaveMsg').innerHTML=`<div class="msg err">${e.message}</div>`;
+  }
+  $('saveQuestionsBtn').disabled=false;
 });
 
 async function loadSiteBackgrounds(){
