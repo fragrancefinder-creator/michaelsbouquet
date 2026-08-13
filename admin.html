@@ -92,6 +92,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent);
 
   <div class="tabs">
     <div class="tab active" data-tab="catalog">Catalog</div>
+    <div class="tab" data-tab="tags">Tags</div>
     <div class="tab" data-tab="rankings">Rankings</div>
     <div class="tab" data-tab="activity">Activity</div>
   </div>
@@ -100,30 +101,6 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent);
     <div id="seedCard" class="card" style="display:none;">
       <p style="margin-bottom:12px;">Your fragrance collection is empty. Load the starting Michaels Bouquet catalogue (26 men's + 22 women's fragrances, matched against the live site) to begin?</p>
       <button class="btn primary" id="seedBtn">Load starting catalog</button>
-    </div>
-
-    <div class="card">
-      <h2 style="font-family:'Fraunces',serif;font-size:18px;margin-bottom:6px;">Manage tags & emojis</h2>
-      <p style="color:var(--dimmer);font-size:13px;margin-bottom:16px;">Every profile ("character") and effect ("message") tag used on the quiz, with its emoji. Change any emoji or label, or delete a tag you don't want offered anymore — it'll disappear from the quiz even if an old fragrance still has it. Add new tags here too, with your own emoji.</p>
-
-      <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--dimmer);margin-bottom:10px;">Profile tags</h3>
-      <div id="profileTagManager" style="margin-bottom:14px;"></div>
-      <div class="add-tag-row" style="margin-bottom:24px;">
-        <input id="newProfileTagName" placeholder="New tag name (e.g. leathery)" style="flex:2;">
-        <input id="newProfileTagEmoji" placeholder="Emoji" style="flex:0 0 70px;text-align:center;">
-        <button class="btn" id="addProfileTagMgrBtn">+ Add</button>
-      </div>
-
-      <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--dimmer);margin-bottom:10px;">Effect tags</h3>
-      <div id="effectTagManager" style="margin-bottom:14px;"></div>
-      <div class="add-tag-row">
-        <input id="newEffectTagName" placeholder="New tag name (e.g. mysterious)" style="flex:2;">
-        <input id="newEffectTagEmoji" placeholder="Emoji" style="flex:0 0 70px;text-align:center;">
-        <button class="btn" id="addEffectTagMgrBtn">+ Add</button>
-      </div>
-
-      <button class="btn primary" id="saveTagsBtn" style="margin-top:20px;">Save tag changes</button>
-      <div id="tagsSaveMsg"></div>
     </div>
 
     <div class="card">
@@ -276,11 +253,37 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent);
     <div id="fragList"></div>
   </div>
 
+  <div class="tabpanel" id="tab-tags">
+    <div class="card">
+      <h2 style="font-family:'Fraunces',serif;font-size:18px;margin-bottom:6px;">Manage tags & emojis</h2>
+      <p style="color:var(--dimmer);font-size:13px;margin-bottom:16px;">Every profile ("character") and effect ("message") tag used on the quiz, with its emoji. Change any emoji or label, or delete a tag you don't want offered anymore — it'll disappear from the quiz even if an old fragrance still has it. Add new tags here too, with your own emoji.</p>
+
+      <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--dimmer);margin-bottom:10px;">Profile tags</h3>
+      <div id="profileTagManager" style="margin-bottom:14px;"></div>
+      <div class="add-tag-row" style="margin-bottom:24px;">
+        <input id="newProfileTagName" placeholder="New tag name (e.g. leathery)" style="flex:2;">
+        <input id="newProfileTagEmoji" placeholder="Emoji" style="flex:0 0 70px;text-align:center;">
+        <button class="btn" id="addProfileTagMgrBtn">+ Add</button>
+      </div>
+
+      <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--dimmer);margin-bottom:10px;">Effect tags</h3>
+      <div id="effectTagManager" style="margin-bottom:14px;"></div>
+      <div class="add-tag-row">
+        <input id="newEffectTagName" placeholder="New tag name (e.g. mysterious)" style="flex:2;">
+        <input id="newEffectTagEmoji" placeholder="Emoji" style="flex:0 0 70px;text-align:center;">
+        <button class="btn" id="addEffectTagMgrBtn">+ Add</button>
+      </div>
+
+      <button class="btn primary" id="saveTagsBtn" style="margin-top:20px;">Save tag changes</button>
+      <div id="tagsSaveMsg"></div>
+    </div>
+  </div>
+
   <div class="tabpanel" id="tab-rankings">
     <div class="card">
       <p class="hint">Every time the quiz shows someone their results, the fragrances shown get logged here — anonymously, no personal data. This tells you what people are actually matching with most.</p>
 
-      <div class="row2" style="align-items:end;margin-bottom:18px;">
+      <div class="row3" style="align-items:end;margin-bottom:18px;">
         <div class="field" style="margin-bottom:0;">
           <label>Period</label>
           <select id="rankPeriod">
@@ -289,6 +292,14 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent);
             <option value="30">Last 30 days</option>
             <option value="month">This calendar month</option>
             <option value="custom">Custom range…</option>
+          </select>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label>Gender</label>
+          <select id="rankGender">
+            <option value="all">All</option>
+            <option value="men">For Him</option>
+            <option value="women">For Her</option>
           </select>
         </div>
         <div class="field" id="customRangeWrap" style="display:none;margin-bottom:0;">
@@ -324,9 +335,9 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent);
 
   <div class="tabpanel" id="tab-activity">
     <div class="card">
-      <p class="hint">Tracks when people open the quiz vs. actually finish it, and which bundle they pick — separate from the fragrance rankings, so resetting one doesn't touch the other.</p>
+      <p class="hint">Tracks when people open the quiz vs. actually finish it, and which bundle they pick — separate from the fragrance rankings, so resetting one doesn't touch the other. Gender isn't known until someone answers the first question, so the gender filter only narrows Completed and Bundle choice — Started and Completion rate always reflect everyone.</p>
 
-      <div class="row2" style="align-items:end;margin-bottom:18px;">
+      <div class="row3" style="align-items:end;margin-bottom:18px;">
         <div class="field" style="margin-bottom:0;">
           <label>Period</label>
           <select id="actPeriod">
@@ -335,6 +346,14 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent);
             <option value="30">Last 30 days</option>
             <option value="month">This calendar month</option>
             <option value="custom">Custom range…</option>
+          </select>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label>Gender</label>
+          <select id="actGender">
+            <option value="all">All</option>
+            <option value="men">For Him</option>
+            <option value="women">For Her</option>
           </select>
         </div>
         <div class="field" id="actCustomRangeWrap" style="display:none;margin-bottom:0;">
@@ -362,10 +381,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent);
       </div>
 
       <h2 style="font-family:'Fraunces',serif;font-size:18px;margin-bottom:16px;">Bundle choice (of completed quizzes)</h2>
-      <div style="display:flex;gap:32px;align-items:center;flex-wrap:wrap;">
-        <div id="bundlePie" style="width:180px;height:180px;border-radius:50%;flex-shrink:0;background:var(--line);"></div>
-        <div id="bundleLegend" style="flex:1;min-width:220px;"></div>
-      </div>
+      <div id="bundleBars"></div>
     </div>
   </div>
 </div>
@@ -1019,6 +1035,11 @@ function filterByPeriodIds(list,periodId,fromId,toId){
   });
 }
 function filterByPeriod(list){ return filterByPeriodIds(list,'rankPeriod','rankFrom','rankTo'); }
+function filterByGender(list,genderId){
+  const g=$(genderId).value;
+  if(g==='all')return list;
+  return list.filter(r=>r.gender===g);
+}
 
 $('rankPeriod').addEventListener('change',()=>{
   $('customRangeWrap').style.display = $('rankPeriod').value==='custom' ? 'block' : 'none';
@@ -1026,6 +1047,7 @@ $('rankPeriod').addEventListener('change',()=>{
 });
 $('rankFrom').addEventListener('change',renderRankings);
 $('rankTo').addEventListener('change',renderRankings);
+$('rankGender').addEventListener('change',renderRankings);
 
 async function loadRankings(){
   $('rankList').innerHTML='<div style="color:var(--dim);">Loading…</div>';
@@ -1048,7 +1070,7 @@ function renderBreakdownBars(containerId, counts, labels){
 }
 
 function renderRankings(){
-  const filtered=filterByPeriod(allResults||[]);
+  const filtered=filterByGender(filterByPeriod(allResults||[]),'rankGender');
   const counts={};
   filtered.forEach(r=>{ r.names.forEach(n=>{ counts[n]=(counts[n]||0)+1; }); });
   const ranked=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
@@ -1115,6 +1137,7 @@ $('actPeriod').addEventListener('change',()=>{
 });
 $('actFrom').addEventListener('change',renderActivity);
 $('actTo').addEventListener('change',renderActivity);
+$('actGender').addEventListener('change',renderActivity);
 
 async function loadActivity(){
   await Promise.all([fetchResultsIfNeeded(),fetchStartsIfNeeded()]);
@@ -1123,7 +1146,8 @@ async function loadActivity(){
 
 function renderActivity(){
   const starts=filterByPeriodIds(allStarts||[],'actPeriod','actFrom','actTo');
-  const completed=filterByPeriodIds(allResults||[],'actPeriod','actFrom','actTo');
+  const completedAll=filterByPeriodIds(allResults||[],'actPeriod','actFrom','actTo');
+  const completed=filterByGender(completedAll,'actGender');
 
   $('statStarted').textContent=starts.length;
   $('statCompleted').textContent=completed.length;
@@ -1131,33 +1155,7 @@ function renderActivity(){
 
   const counts={single:0,duo:0,trio:0};
   completed.forEach(r=>{ if(counts[r.bundle]!==undefined)counts[r.bundle]++; else counts[r.bundle]=(counts[r.bundle]||0)+1; });
-  const total=Object.values(counts).reduce((a,b)=>a+b,0);
-
-  const pie=$('bundlePie');
-  const legend=$('bundleLegend');
-  if(!total){
-    pie.style.background='var(--line)';
-    legend.innerHTML='<p style="color:var(--dim);">No completed quizzes in this period yet.</p>';
-    return;
-  }
-  let acc=0;
-  const stops=[];
-  Object.entries(counts).forEach(([k,v])=>{
-    if(!v)return;
-    const startPct=acc/total*100;
-    acc+=v;
-    const endPct=acc/total*100;
-    const color=BUNDLE_COLORS[k]||'#888';
-    stops.push(`${color} ${startPct.toFixed(2)}% ${endPct.toFixed(2)}%`);
-  });
-  pie.style.background=`conic-gradient(${stops.join(',')})`;
-
-  legend.innerHTML=Object.entries(counts).filter(([k,v])=>v>0).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-      <div style="width:12px;height:12px;border-radius:3px;background:${BUNDLE_COLORS[k]||'#888'};flex-shrink:0;"></div>
-      <div style="flex:1;">${BUNDLE_LABELS[k]||k}</div>
-      <div style="font-family:'Manrope',sans-serif;font-size:12px;color:var(--dim);">${v} · ${(v/total*100).toFixed(0)}%</div>
-    </div>`).join('');
+  renderBreakdownBars('bundleBars', counts, BUNDLE_LABELS);
 }
 </script>
 </body>
